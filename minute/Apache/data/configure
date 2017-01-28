@@ -1,0 +1,9 @@
+RUN mkdir -p /var/www/logs /var/www/tmp /var/www/public/tmp
+
+RUN cd /var/www && /usr/bin/composer install --prefer-source --no-dev --no-interaction --no-scripts
+RUN cd /var/www && /usr/bin/composer dump-autoload --optimize
+RUN cd /var/www/public/static && bower --config.interactive=false install -F --allow-root --quiet
+
+RUN chown -R www-data:www-data /var/www
+RUN chmod -R 775 /var/www/app /var/www/vendor /var/www/public
+RUN chmod -R 777 /var/www/logs /var/www/tmp /var/www/public/tmp
