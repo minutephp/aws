@@ -11,8 +11,8 @@
             </ol>
         </section>
 
-        <ng-switch on="!!services.beanstalk.key && !!services.ec2.key && !!services.rds.key">
-            <section class="content padded" ng-switch-when="false">
+        <section class="content" ng-switch="" on="!!services.beanstalk.key && !!services.ec2.key && !!services.rds.key">
+            <div class="padded" ng-switch-when="false">
                 <div class="alert alert-warning alert-dismissible" role="alert">
                     <p translate="" ng-show="!services.beanstalk.key">Please configure Amazon Elastic Beanstalk access for automatic deployment.</p>
 
@@ -24,9 +24,9 @@
 
                     <a class="btn btn-primary" ng-href="/admin/aws/setup"><span translate="">Setup Amazon IAM access</span> <i class="fa fa-angle-right"></i></a>
                 </div>
-            </section>
+            </div>
 
-            <section class="content" ng-switch-when="true">
+            <div ng-switch-when="true">
                 <minute-event name="import.git.status" as="data.git"></minute-event>
 
                 <div class="alert alert-warning alert-dismissible" role="alert" ng-if="data.git.status === 'uncommitted'">
@@ -264,7 +264,7 @@
                     </div>
                 </form>
                 <form name="deployForm" id="deployer" method="POST"></form>
-            </section>
-        </ng-switch>
+            </div>
+        </section>
     </div>
 </div>
