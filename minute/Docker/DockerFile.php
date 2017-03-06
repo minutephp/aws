@@ -57,7 +57,7 @@ namespace Minute\Docker {
                 $event->addContent('Dockerfile', 'EXPOSE 8000');
                 //$event->addContent('Dockerfile', 'CMD ["php", "-S", "0.0.0.0:8000", "-t", "/tmp/php-daemon"]');
             } else {
-                $event->addContent('Dockerfile', 'EXPOSE 80');
+                $event->addContent('Dockerfile', 'EXPOSE 80 443');
             }
 
             //$event->addContent('Dockerfile', 'CMD ["/usr/sbin/apache2", "-D", "FOREGROUND"]');
