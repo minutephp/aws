@@ -9,7 +9,6 @@ namespace Minute\Apache {
     use Minute\Aws\Client;
     use Minute\Config\Config;
     use Minute\Event\DockerEvent;
-    use StringTemplate\Engine;
 
     class ApacheFile {
         /**
@@ -62,21 +61,31 @@ namespace Minute\Apache {
 
             if (!empty($settings['cdn_enabled'])) {
                 if ($cdn = $this->config->get(Client::AWS_KEY . '/static/cdn_cname')) {
-                    $rewrites .= "RewriteCond %{HTTP:X-Forwarded-Proto} https\n\t" .
+                    $rewrites .= "RewriteCond %{HTTP:X-Forwarded-Proto} https  [OR]\n\t" .
+                                 "RewriteCond %{HTTPS} on\n\t" .
                                  "RewriteRule ^/static/(.*) https://$cdn/static/$1 [R=301,L]\n\n\t" .
                                  "RewriteCond %{HTTP:X-Forwarded-Proto} !https\n\t" .
                                  "RewriteRule ^/static/(.*) http://$cdn/static/$1 [R=301,L]\n\n";
                 }
             }
 
-            $hash  = array_merge(['path' => '/var/www/public', 'rewrites' => $rewrites], $this->config->getPublicVars());
-            $httpd = file_get_contents(sprintf('%s/data/%s.conf', __DIR__, ($event->getType() === 'worker') ? 'worker' : 'web'));
+            $hash = array_merge(['path' => '/var/www/public', 'rewrites' => $rewrites], $this->config->getPublicVars());
+            $dir  = realpath(sprintf('%s/data', __DIR__));
 
             $event->addTags($hash);
-            $event->addContent('apache.conf', $httpd);
+
+            if (($event->getType() === 'worker')) {
+                $event->addContent('apache.conf', file_get_contents("$dir/worker.conf"));
+            } else {
+                $event->addContent('apache.conf', file_get_contents("$dir/web.conf"));
+            }
+
+            $event->addContent('rewrite.conf', file_get_contents("$dir/rewrite.conf"));
         }
 
         public function finish(DockerEvent $event) {
+            $event->addContent('Dockerfile', "ADD apache.conf     /etc/apache2/sites-enabled/default.conf");
+            $event->addContent('Dockerfile', "ADD rewrite.conf    /etc/apache2/rules/rewrite.conf");
             $event->addContent('Dockerfile', "RUN rm -f /root/.ssh/config");
         }
     }

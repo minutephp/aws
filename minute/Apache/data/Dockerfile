@@ -8,7 +8,6 @@ RUN rm -rf /etc/apache2/sites-available/*
 RUN rm -rf /etc/apache2/sites-enabled/*
 RUN rm -rf /var/www
 
-ADD apache.conf     /etc/apache2/sites-enabled/default.conf
 ADD minute.ini      /etc/php/7.0/apache2/conf.d/minute.ini
 ADD minute.ini      /etc/php/7.0/cli/conf.d/minute.ini
 
