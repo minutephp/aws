@@ -4,6 +4,7 @@
  * Date: 11/5/2016
  * Time: 11:04 AM
  */
+
 namespace Minute\Todo {
 
     use Minute\Config\Config;
@@ -33,14 +34,24 @@ namespace Minute\Todo {
         public function getTodoList(ImportEvent $event) {
             $domain = $this->config->getPublicVars('domain');
             $host   = $this->config->getPublicVars('host');
+            $cdnUrl = 'https://console.aws.amazon.com/cloudfront/home';
 
             $cloud[] = ['name' => 'Enable S3 bucket for uploads', 'description' => 'To manage user uploads',
                         'status' => $this->config->get('aws/uploads/upload_bucket') ? 'complete' : 'incomplete', 'link' => '/admin/aws/cdn'];
+
             $cloud[] = ['name' => 'Setup CDN for uploads', 'description' => 'For better performance',
                         'status' => $this->config->get('aws/uploads/cdn_cname') ? 'complete' : 'incomplete', 'link' => '/admin/aws/cdn'];
 
+            if ($this->config->get('aws/uploads/cdn_host')) {
+                $cloud[] = $this->todoMaker->createManualItem("cdn-upload-ssl", "Replace default Cloudfront certificate with Custom SSL Certificate", 'To load uploads via https', $cdnUrl);
+            }
+
             $cloud[] = ['name' => 'Setup CDN for "static" urls', 'description' => 'For faster site loading of everything under "/static" folder',
                         'status' => $this->config->get('aws/static/cdn_cname') ? 'complete' : 'incomplete', 'link' => '/admin/aws/cdn'];
+
+            if ($this->config->get('aws/static/cdn_host')) {
+                $cloud[] = $this->todoMaker->createManualItem("cdn-static-ssl", "Replace default Cloudfront certificate with Custom SSL Certificate", 'To load static assets via https', $cdnUrl);
+            }
 
             $ses[] = $this->todoMaker->createManualItem("add-to-verified-senders", "Add $domain to verified senders", 'In Amazon SES', 'http://console.aws.amazon.com/ses/home?#verified-senders-domain:');
             $ses[] = $this->todoMaker->createManualItem("add-dkim", "Add SPF / DKIM keys for $domain", 'In Route 53', 'http://console.aws.amazon.com/ses/home?#verified-senders-domain:');
