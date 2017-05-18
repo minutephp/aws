@@ -38,7 +38,7 @@ namespace Minute\Apache {
                 $event->addContent('Dockerfile', "RUN chmod 0400 /root/.ssh/*");
             }
 
-            //$event->addContent('Dockerfile', "RUN echo CACHE_BUSTER_" . rand(1, 9999) . " > /dev/null");
+            $event->addContent('Dockerfile', "RUN echo CACHE_BUSTER_" . rand(1, 9999) . " > /dev/null");
             $event->addContent('Dockerfile', "RUN git clone {$settings['repo_url']} /var/www");
 
             if ($event->getType() === 'worker') {
