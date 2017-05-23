@@ -4,6 +4,7 @@
  * Date: 8/28/2016
  * Time: 1:21 AM
  */
+
 namespace Minute\Apache {
 
     use Minute\Aws\Client;
@@ -61,11 +62,13 @@ namespace Minute\Apache {
 
             if (!empty($settings['cdn_enabled'])) {
                 if ($cdn = $this->config->get(Client::AWS_KEY . '/static/cdn_cname')) {
+                    $version = !empty($settings['version_enabled']) ? "?1" : '';
+
                     $rewrites .= "RewriteCond %{HTTP:X-Forwarded-Proto} https  [OR]\n\t" .
                                  "RewriteCond %{HTTPS} on\n\t" .
-                                 "RewriteRule ^/static/(.*) https://$cdn/static/$1 [R=301,L]\n\n\t" .
+                                 "RewriteRule ^/static/(.*) https://$cdn/static/$1$version [R=301,L]\n\n\t" .
                                  "RewriteCond %{HTTP:X-Forwarded-Proto} !https\n\t" .
-                                 "RewriteRule ^/static/(.*) http://$cdn/static/$1 [R=301,L]\n\n";
+                                 "RewriteRule ^/static/(.*) http://$cdn/static/$1$version [R=301,L]\n\n";
                 }
             }
 

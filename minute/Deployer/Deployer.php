@@ -4,6 +4,7 @@
  * Date: 8/29/2016
  * Time: 2:51 PM
  */
+
 namespace Minute\Deployer {
 
     use App\Config\BootLoader;
@@ -143,10 +144,12 @@ namespace Minute\Deployer {
                                     }
 
                                     $html .= sprintf('</tbody></table>');
-                                    $html .= sprintf('<p class="text-danger"><small>*</small> You may need to setup your database ONCE after the first deployment (required only once per site)</p>');
+                                    $html .= sprintf('<div class="alert alert-danger"><small>*</small> You may need to setup your database ONCE after the first deployment (required only once per site)</div>');
                                     //$html .= sprintf('<p><small>*</small> Create a S3 bucket named "%s" to redirect all traffic to www.%s (naked domain redirect)</p>', $domain, $domain);
                                     $html .= sprintf('<p><small>*</small> For `https` sites, make sure port 443 is open and <abbr title="Elastic load balancer">ELB</abbr> is listening on it.</p>');
                                     $html .= sprintf('<p><small>*</small> You can copy-paste this URL (see address bar) as a Web-hook in your Git repository (for automatic deployments on `git push`)</p>');
+
+                                    $html = sprintf('<div class="container">%s</div>', $html);
                                 }
                             }
                         }

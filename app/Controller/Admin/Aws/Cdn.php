@@ -2,6 +2,7 @@
 /**
  * Created by: MinutePHP framework
  */
+
 namespace App\Controller\Admin\Aws {
 
     use App\Controller\Generic\DefaultPostHandler;
@@ -41,13 +42,14 @@ namespace App\Controller\Admin\Aws {
         }
 
         public function index(string $_mode, array $_models, RouteEx $_route, array $_parents, HttpRequestEx $request, string $alias) {
+            //added headers and OPTIONS in Allowed methods
             $this->postHandler->index($_mode, $_models, $_route, $_parents, $alias);
 
             if ($settings = json_decode($request->getParameter('items')[0]['data_json'], true)) {
                 if ($bucket = $settings['uploads']['upload_bucket']) {
                     try {
                         $s3    = $this->client->getS3Client();
-                        $rules = [['AllowedOrigins' => ['*', 'http://*', 'https://*'], 'AllowedMethods' => ['GET', 'POST'], 'AllowedHeaders' => ['*'],
+                        $rules = [['AllowedOrigins' => ['*', 'http://*', 'https://*'], 'AllowedMethods' => ['GET', 'POST', 'OPTIONS'], 'AllowedHeaders' => ['*'],
                                    'ExposeHeaders' => ['ETag', 'Access-Control-Allow-Origin'], 'MaxAgeSeconds' => 3000]];
 
                         if (!$s3->doesBucketExist($bucket) || !$s3->headBucket(array('Bucket' => $bucket))) {
@@ -83,11 +85,21 @@ namespace App\Controller\Admin\Aws {
                         $origin   = $setupS3 ? sprintf('%s.s3.amazonaws.com', $bucket) : "www.$domain";
                         $originId = sprintf('%s-%s', $setupS3 ? 'S3' : 'Custom', $domain);
                         $cdn_host = $cdn['cdn_host'];
+                        $headers  = ['CustomHeaders' => [
+                            // Quantity is required
+                            'Quantity' => 3,
+                            'Items' => [
+                                ['HeaderName' => 'Access-Control-Allow-Headers', 'HeaderValue' => 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With'],
+                                ['HeaderName' => 'Access-Control-Allow-Methods', 'HeaderValue' => 'POST, GET, OPTIONS'],
+                                ['HeaderName' => 'Access-Control-Allow-Origin', 'HeaderValue' => '*'],
+                            ],
+                        ]];
 
                         if ($setupS3) {
-                            $item = ['Id' => $originId, 'DomainName' => $origin, 'S3OriginConfig' => ['OriginAccessIdentity' => '']];
+                            $item = array_merge(['Id' => $originId, 'DomainName' => $origin, 'S3OriginConfig' => ['OriginAccessIdentity' => '']], $headers);
                         } else {
-                            $item = ['Id' => $originId, 'DomainName' => $origin, 'CustomOriginConfig' => ['HTTPPort' => 80, 'HTTPSPort' => 443, 'OriginProtocolPolicy' => 'match-viewer']];
+                            $item = array_merge(['Id' => $originId, 'DomainName' => $origin,
+                                                 'CustomOriginConfig' => ['HTTPPort' => 80, 'HTTPSPort' => 443, 'OriginProtocolPolicy' => 'match-viewer']], $headers);
                         }
 
                         $params = ['DistributionConfig' => [
