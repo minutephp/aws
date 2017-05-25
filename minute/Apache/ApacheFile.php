@@ -29,6 +29,7 @@ namespace Minute\Apache {
         public function config(DockerEvent $event) {
             $settings = $event->getSettings();
             $rewrites = '';
+            $version  = rand(0, 99999999);
 
             $event->addContent('Dockerfile', file_get_contents(sprintf('%s/data/Dockerfile', __DIR__)));
 
@@ -39,7 +40,7 @@ namespace Minute\Apache {
                 $event->addContent('Dockerfile', "RUN chmod 0400 /root/.ssh/*");
             }
 
-            $event->addContent('Dockerfile', "RUN echo CACHE_BUSTER_" . rand(1, 9999) . " > /dev/null");
+            $event->addContent('Dockerfile', "RUN env PHP_CACHE_BUSTER=$version");
             $event->addContent('Dockerfile', "RUN git clone {$settings['repo_url']} /var/www");
 
             if ($event->getType() === 'worker') {
@@ -62,13 +63,11 @@ namespace Minute\Apache {
 
             if (!empty($settings['cdn_enabled'])) {
                 if ($cdn = $this->config->get(Client::AWS_KEY . '/static/cdn_cname')) {
-                    $version = !empty($settings['version_enabled']) ? "?1" : '';
-
                     $rewrites .= "RewriteCond %{HTTP:X-Forwarded-Proto} https  [OR]\n\t" .
                                  "RewriteCond %{HTTPS} on\n\t" .
-                                 "RewriteRule ^/static/(.*) https://$cdn/static/$1$version [R=301,L]\n\n\t" .
+                                 "RewriteRule ^/static/(.*) https://$cdn/static/$1?ver=$version [R=301,L,QSA]\n\n\t" .
                                  "RewriteCond %{HTTP:X-Forwarded-Proto} !https\n\t" .
-                                 "RewriteRule ^/static/(.*) http://$cdn/static/$1$version [R=301,L]\n\n";
+                                 "RewriteRule ^/static/(.*) http://$cdn/static/$1?ver=$version [R=301,L,QSA]\n\n";
                 }
             }
 
